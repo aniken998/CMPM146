@@ -1,9 +1,9 @@
 
 from mcts_node import MCTSNode
-from random import choice
+from random import choice, random, shuffle
 from math import sqrt, log
 
-num_nodes = 1000
+num_nodes = 100
 explore_faction = 2.
 
 def traverse_nodes(node, board, state, identity):
@@ -18,8 +18,16 @@ def traverse_nodes(node, board, state, identity):
     Returns:        A node from which the next stage of the search can proceed.
 
     """
-    pass
-    # Hint: return leaf_node
+    #if reaches the target, return that node and state
+    if node.untried_actions or not node.child_nodes:
+        return node,state
+    else:
+        # print("I'm in else")
+        #get the best node, recursively traverse the tree
+        node = best_ucb(node,board,state,identity)
+        state = board.next_state(state, node.parent_action)
+        # print("current_node found")
+        return traverse_nodes(node, board, state, identity)
 
 
 def expand_leaf(node, board, state):
@@ -33,11 +41,29 @@ def expand_leaf(node, board, state):
     Returns:    The added child node.
 
     """
-    pass
+    #if ending, return the node
+    if board.is_ended(state):
+        # print("expand ended")
+        return node,state
+    #a random action from this node
+    #print("expand")
+    random_action = choice(node.untried_actions)
+    #remove the action from untried actions because already made the action
+    node.untried_actions.remove(random_action)
+    ######### update the state ##########
+    # print("Before expand player: ", board.current_player(state))
+    state = board.next_state(state, random_action)
+    # print("expand player: ", board.current_player(state))
+    ##############################################
+    #create the node
+    child = MCTSNode(parent=node, parent_action=random_action, action_list=board.legal_actions(state))
+    # add child node in the tree
+    node.child_nodes[random_action] = child
+    return child,state
     # Hint: return new_node
 
 
-def rollout(board, state):
+def rollout(board, state, identity):
     """ Given the state of the game, the rollout plays out the remainder randomly.
 
     Args:
@@ -45,7 +71,51 @@ def rollout(board, state):
         state:  The state of the game.
 
     """
-    pass
+    myState = state
+    prevState = None
+    myPlayer = identity
+    thisPlayer = board.current_player(myState)
+    loseNext = False
+    # playerBox = 0;
+    # enemyBox = 0;
+    # ownedBox = board.owned_boxes(state)
+    # for box in ownedBox.values():
+    #     if box == 0:
+    #         continue
+    #     elif box == player:
+    #         playerBox += 1
+    #     else:
+    #         enemyBox += 1
+    backNum = 0;
+    while not board.is_ended(myState):
+        moves = board.legal_actions(myState)
+        shuffle(moves)
+        if thisPlayer == myPlayer and not loseNext:
+            prevState = myState
+        if loseNext:
+            backNum += 1
+            loseNext = False
+        for move in moves:
+            thisState = board.next_state(myState, move)
+            if(board.points_values(thisState) != None):
+                if board.points_values(thisState)[myPlayer] == 1:
+                    # print("go win")
+                    return thisState
+                elif board.points_values(thisState)[3 - myPlayer] == 1 and backNum < 1000 and prevState != None:
+                    myState = prevState
+                    loseNext = True
+                    # print("go lose, backNum is: ", backNum)
+                else:
+                    myState = board.next_state(myState, move)
+            else:
+                myState = board.next_state(myState, move)
+                # print("go random")
+            # if(myState == None):
+                # print("State is NONE")
+        thisPlayer = board.current_player(myState)
+    return myState
+    
+    
 
 
 def backpropagate(node, won):
@@ -56,6 +126,10 @@ def backpropagate(node, won):
         won:    An indicator of whether the bot won or lost the game.
 
     """
+    while node is not None:
+        node.wins += won
+        node.visits += 1
+        node = node.parent
     pass
 
 
@@ -80,7 +154,34 @@ def think(board, state):
         node = root_node
 
         # Do MCTS - This is all you!
-
+        # update the state along with the node
+        node,selected_state = traverse_nodes(node, board, sampled_game, identity_of_bot)
+        node,expanded_state = expand_leaf(node,board,selected_state)
+        rollout_state = rollout(board,expanded_state, identity_of_bot)
+        point = board.points_values(rollout_state)
+        # win or lose? could be a method here
+        if point[identity_of_bot] == 1 :
+            won = 1
+        elif point[identity_of_bot] == 0: 
+            won = 0
+        else:
+            won = -1
+        backpropagate(node,won)
+    #get the node with the highest win rate
+    win_rate = {}
+    for child in root_node.child_nodes.values():
+        win_rate[child] = child.wins / child.visits
+    winner = max(win_rate,key=win_rate.get)
     # Return an action, typically the most frequently used action (from the root) or the action with the best
     # estimated win rate.
-    return None
+    return winner.parent_action
+    # make a best choice with maxium ucb values
+def best_ucb(node,board,state,identity):
+    # a dictionary to store ucb values for children
+    ucbs = {}
+    for child in node.child_nodes.values():
+        #check identity
+        win_rate = child.wins/child.visits if identity == board.current_player(state) else 1 - child.wins/child.visits 
+        ucbs[child] = win_rate + explore_faction * sqrt(log(child.parent.visits)/child.visits)
+    best_child = max(ucbs, key = ucbs.get)
+    return best_child
