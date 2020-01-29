@@ -1,0 +1,13 @@
+Experiment 2 - Heuristic Improvement
+100 rounds
+
+P1: size 100   P2: size 100
+Final win counts: {'draw': 7, 1: 47, 2: 46}
+
+P1: size 500   P2: size 100
+Final win counts: {'draw': 10, 1: 75, 2: 15}
+
+P1: size 100   P2: size 500
+Final win counts: {'draw': 5, 1: 10, 2: 85}
+
+From the result, modified version has almost the same win rate with the vanilla version with same tree sizes. Also, we conclude that more tree sizes will have the higher chance to win the game.

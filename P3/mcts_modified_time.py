@@ -1,9 +1,8 @@
-
 from mcts_node import MCTSNode
 from random import choice, random, shuffle
 from math import sqrt, log
+import time
 
-num_nodes = 100
 explore_faction = 2.
 
 def traverse_nodes(node, board, state, identity):
@@ -28,6 +27,8 @@ def traverse_nodes(node, board, state, identity):
         state = board.next_state(state, node.parent_action)
         # print("current_node found")
         return traverse_nodes(node, board, state, identity)
+        
+    
 
 
 def expand_leaf(node, board, state):
@@ -51,9 +52,7 @@ def expand_leaf(node, board, state):
     #remove the action from untried actions because already made the action
     node.untried_actions.remove(random_action)
     ######### update the state ##########
-    # print("Before expand player: ", board.current_player(state))
     state = board.next_state(state, random_action)
-    # print("expand player: ", board.current_player(state))
     ##############################################
     #create the node
     child = MCTSNode(parent=node, parent_action=random_action, action_list=board.legal_actions(state))
@@ -63,7 +62,7 @@ def expand_leaf(node, board, state):
     # Hint: return new_node
 
 
-def rollout(board, state, identity):
+def rollout(board, state,identity):
     """ Given the state of the game, the rollout plays out the remainder randomly.
 
     Args:
@@ -71,29 +70,18 @@ def rollout(board, state, identity):
         state:  The state of the game.
 
     """
+   
     myState = state
     prevState = None
     myPlayer = identity
     thisPlayer = board.current_player(myState)
     loseNext = False
-    # playerBox = 0;
-    # enemyBox = 0;
-    # ownedBox = board.owned_boxes(state)
-    # for box in ownedBox.values():
-    #     if box == 0:
-    #         continue
-    #     elif box == player:
-    #         playerBox += 1
-    #     else:
-    #         enemyBox += 1
-    backNum = 0;
     while not board.is_ended(myState):
         moves = board.legal_actions(myState)
         shuffle(moves)
         if thisPlayer == myPlayer and not loseNext:
             prevState = myState
         if loseNext:
-            backNum += 1
             loseNext = False
         ownedBox = board.owned_boxes(state)
         for move in moves:
@@ -101,7 +89,7 @@ def rollout(board, state, identity):
             thisState = board.next_state(myState, move)
             if board.is_ended(thisState) and thisPlayer == myPlayer:
                 return thisState
-            elif ownedBox[target] == 3 - myPlayer and backNum < 100:
+            elif ownedBox[target] == 3 - myPlayer:
                 myState = prevState
                 loseNext = True
                 break
@@ -112,8 +100,6 @@ def rollout(board, state, identity):
                 myState = thisState
         thisPlayer = board.current_player(myState)
     return myState
-    
-    
 
 
 def backpropagate(node, won):
@@ -141,10 +127,12 @@ def think(board, state):
     Returns:    The action to be taken.
 
     """
+    start = time.time()
+    win_rate = {}
     identity_of_bot = board.current_player(state)
     root_node = MCTSNode(parent=None, parent_action=None, action_list=board.legal_actions(state))
-
-    for step in range(num_nodes):
+    while(time.time() - start < 1):
+        #extra credit
         # Copy the game for sampling a playthrough
         sampled_game = state
 
@@ -155,18 +143,12 @@ def think(board, state):
         # update the state along with the node
         node,selected_state = traverse_nodes(node, board, sampled_game, identity_of_bot)
         node,expanded_state = expand_leaf(node,board,selected_state)
-        rollout_state = rollout(board,expanded_state, identity_of_bot)
+        rollout_state = rollout(board,expanded_state,identity_of_bot)
         point = board.points_values(rollout_state)
         # win or lose? could be a method here
-        if point[identity_of_bot] == 1 :
-            won = 1
-        elif point[identity_of_bot] == 0: 
-            won = 0
-        else:
-            won = -1
+        won = win_lost(point,identity_of_bot)
         backpropagate(node,won)
     #get the node with the highest win rate
-    win_rate = {}
     for child in root_node.child_nodes.values():
         win_rate[child] = child.wins / child.visits
     winner = max(win_rate,key=win_rate.get)
@@ -183,3 +165,12 @@ def best_ucb(node,board,state,identity):
         ucbs[child] = win_rate + explore_faction * sqrt(log(child.parent.visits)/child.visits)
     best_child = max(ucbs, key = ucbs.get)
     return best_child
+
+def win_lost(point, identity):
+    if point[identity] == 1 :
+        won = 1
+    elif point[identity] == 0: 
+        won = 0
+    else:
+        won = -1
+    return won

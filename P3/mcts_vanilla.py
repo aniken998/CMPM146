@@ -2,8 +2,7 @@
 from mcts_node import MCTSNode
 from random import choice
 from math import sqrt, log
-
-num_nodes = 100
+num_nodes = 1000
 explore_faction = 2.
 
 def traverse_nodes(node, board, state, identity):
@@ -101,9 +100,9 @@ def think(board, state):
     Returns:    The action to be taken.
 
     """
+    win_rate = {}
     identity_of_bot = board.current_player(state)
     root_node = MCTSNode(parent=None, parent_action=None, action_list=board.legal_actions(state))
-
     for step in range(num_nodes):
         # Copy the game for sampling a playthrough
         sampled_game = state
@@ -118,15 +117,9 @@ def think(board, state):
         rollout_state = rollout(board,expanded_state)
         point = board.points_values(rollout_state)
         # win or lose? could be a method here
-        if point[identity_of_bot] == 1 :
-            won = 1
-        elif point[identity_of_bot] == 0: 
-            won = 0
-        else:
-            won = -1
+        won = win_lost(point,identity_of_bot)
         backpropagate(node,won)
     #get the node with the highest win rate
-    win_rate = {}
     for child in root_node.child_nodes.values():
         win_rate[child] = child.wins / child.visits
     winner = max(win_rate,key=win_rate.get)
@@ -143,3 +136,12 @@ def best_ucb(node,board,state,identity):
         ucbs[child] = win_rate + explore_faction * sqrt(log(child.parent.visits)/child.visits)
     best_child = max(ucbs, key = ucbs.get)
     return best_child
+
+def win_lost(point, identity):
+    if point[identity] == 1 :
+        won = 1
+    elif point[identity] == 0: 
+        won = 0
+    else:
+        won = -1
+    return won

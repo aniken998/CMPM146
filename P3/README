@@ -1,0 +1,3 @@
+Team Member: Shineng Tang and Enxuan Zhou
+
+mcts_modified.py: The idea of the mcts_modified rollout function is find the move that either can help player wins the game, if not then we check if we can own a box, otherwise randomly. Also in opponent's turn, we check if opponent can owns a box or wins the game, if either of them happened we go back to the last move I about to take and get another random move.
