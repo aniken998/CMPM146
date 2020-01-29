@@ -95,23 +95,21 @@ def rollout(board, state, identity):
         if loseNext:
             backNum += 1
             loseNext = False
+        ownedBox = board.owned_boxes(state)
         for move in moves:
+            target = (move[0], move[1])
             thisState = board.next_state(myState, move)
-            if(board.points_values(thisState) != None):
-                if board.points_values(thisState)[myPlayer] == 1:
-                    # print("go win")
-                    return thisState
-                elif board.points_values(thisState)[3 - myPlayer] == 1 and backNum < 1000 and prevState != None:
-                    myState = prevState
-                    loseNext = True
-                    # print("go lose, backNum is: ", backNum)
-                else:
-                    myState = board.next_state(myState, move)
+            if board.is_ended(thisState) and thisPlayer == myPlayer:
+                return thisState
+            elif ownedBox[target] == 3 - myPlayer and backNum < 100:
+                myState = prevState
+                loseNext = True
+                break
+            elif ownedBox[target] == myPlayer:
+                myState = thisState
+                break
             else:
-                myState = board.next_state(myState, move)
-                # print("go random")
-            # if(myState == None):
-                # print("State is NONE")
+                myState = thisState
         thisPlayer = board.current_player(myState)
     return myState
     
