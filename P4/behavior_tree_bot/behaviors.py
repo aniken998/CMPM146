@@ -39,7 +39,7 @@ def spread_to_weakest_neutral_planet(state):
     else:
         # (4) Send half the ships from my strongest planet to the weakest enemy planet.
         return issue_order(state, strongest_planet.ID, weakest_planet.ID, strongest_planet.num_ships / 2)
-'''
+
 def defend_weakest_ally_planet(state):
     # (1) Find out whether we can safely reinforce. 
     # (a) Find the weakest ally planet.
@@ -55,4 +55,3 @@ def defend_weakest_ally_planet(state):
         return False
     else: # (4) Send ships to defend weakest planet.
         return issue_order(state, strongest_planet.ID, weakest_planet.ID, strongest_planet.num_ships / 2)
-'''
