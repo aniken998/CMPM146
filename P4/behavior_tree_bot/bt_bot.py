@@ -27,8 +27,14 @@ def setup_behavior_tree():
 
     populate_plan = Sequence(name='no-op')
     conserve_check = Check(save_fleet)
-    populate_plan.child_nodes = [conserve_check]
+    nothing = Action(do_no_op)
+    populate_plan.child_nodes = [conserve_check, nothing]
 
+    growth_plan = Sequence(name='Eco Strategy')
+    eco_check = Check(need_econ)
+    grow = Action(spread_ally)
+    growth_plan.child_nodes = [eco_check, grow]
+    
     offensive_plan = Sequence(name='Offensive Strategy')
     largest_fleet_check = Check(have_largest_fleet)
     attack = Action(attack_weakest_enemy_planet)
@@ -44,7 +50,7 @@ def setup_behavior_tree():
     largest_fleet_check = Check(have_largest_fleet)
     visiting_check = Check(is_busy_reinforce) # Returns true if already did this.
     '''
-    root.child_nodes = [spread_sequence, offensive_plan, attack.copy()]
+    root.child_nodes = [offensive_plan, spread_sequence, growth_plan]
     logging.info('\n' + root.tree_to_string())
     return root
 
