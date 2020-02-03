@@ -50,6 +50,7 @@ def setup_behavior_tree():
     largest_fleet_check = Check(have_largest_fleet)
     visiting_check = Check(is_busy_reinforce) # Returns true if already did this.
     '''
+
     root.child_nodes = [offensive_plan, spread_sequence, growth_plan]
     logging.info('\n' + root.tree_to_string())
     return root

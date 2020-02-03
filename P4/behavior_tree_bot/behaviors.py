@@ -117,9 +117,19 @@ def spread_ally(state):
 
     # (4) Increase the eco of the ally planet
     # Try to get atleast 100 ships there
-    reinforcements = abs(100 - (weakest_planet - strongest_planet))
-    return issue_order(state, strongest_planet.ID, weakest_planet.ID, reinforcements)
+    # Improvement: Try to save at least the mean of the enemy ships.
+    strongest_threat = max(state.enemy_fleet(), key=lambda t: t.num_ships, default=None)
+
+    # (5) Leave just enough to defend, allow risk in econ to decimate enemy numbers.
+    estimated_risk = strongest_threat.num_ships
+    if (estimated_risk < strongest_planet.num_ships):
+        reinforcements = abs(estimated_risk - (weakest_planet - strongest_planet))
+        return issue_order(state, strongest_planet.ID, weakest_planet.ID, reinforcements)
+    else:
+        return False
 
 # Does nothing. Just gain free econ and sit back.
 def do_no_op(state):
     return True
+
+# Major Improvement: Choose the "strongest" based on proximity to reinforce or attack.
