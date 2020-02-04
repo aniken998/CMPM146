@@ -12,9 +12,12 @@ def need_econ(state):
             return True
     return False
 
-# Conserve resources
+# Conserve resources, when we send more than we produce
 def save_fleet(state):
     return len(state.my_fleets()) > 5
+    #return (sum(fleet.num_ships for fleet in state.my_fleets()) \
+    #    > sum(planet.growth_rate for planet in state.my_planets()))
+
 
 def have_largest_fleet(state):
     return sum(planet.num_ships for planet in state.my_planets()) \

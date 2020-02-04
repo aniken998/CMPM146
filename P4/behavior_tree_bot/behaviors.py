@@ -11,8 +11,8 @@ def attack_weakest_enemy_planet(state):
 
     # (1) If we currently have a fleet in flight, abort plan.
     # Improve: Count all fleets going to an enemy planet. 
-    if len(state.my_fleets()) >= 10: # Max 3 on offense.
-        return False
+    # if len(state.my_fleets()) >= 10: # Max 3 on offense.
+    #    return False
 
     # (2) Find my strongest planet.
     strongest_planet = max(state.my_planets(), key=lambda t: t.num_ships, default=None)
@@ -43,13 +43,26 @@ def attack_weakest_enemy_planet(state):
         return False
 
     # (4) Attack if you can take the risk. For Enemy vs neutral take bigger risks.
-    if (deviation * growth + health) < strongest_planet.num_ships: 
+    if (deviation * growth + health) > strongest_planet.num_ships: 
         # # Overall, never send all your ships. it kills econ.
         # Improvements: Factor in growth rate instead of a standard 1/2
         # target_planet.growth_rate + 1
-        # Try to leave at least 100 ships.
-        send_ships = abs(100 - strongest_planet.num_ships)
-        return issue_order(state, strongest_planet.ID, weakest_planet.ID, send_ships)
+        return False
+
+    # Improvement: Try to save at least the mean of the enemy ships. OR highest planet
+    max_out = sum(fleet.num_ships for fleet in state.enemy_fleets())
+    max_in = max(state.enemy_planets(), key=lambda t: t.num_ships, default=None)
+
+    # (5) Leave just enough to defend, allow risk in econ to decimate enemy numbers.    
+    if max_out > max_in.num_ships:
+        estimated_risk = max_out
+    else:
+        estimated_risk = max_in.num_ships
+
+    if (estimated_risk < strongest_planet.num_ships):
+        attackers = abs(estimated_risk - strongest_planet.num_ships)
+        #attackers = abs(100 - strongest_planet.num_ships)
+        return issue_order(state, strongest_planet.ID, weakest_planet.ID, attackers)
     else:
         return False
 
@@ -104,10 +117,14 @@ def spread_ally(state):
     if (strongest_planet.growth_rate < 10):
         return False
 
+    # Get a list of visited planets.
+    visited = state.my_fleets().destination_planet
+
     # (2) Search for some new planets to grow.
     for target_planet in state.my_planets():
-        # New planet with less than 50 pop.
-        if target_planet.growth_rate < 5:
+        # New planet with less than 50 pop. And there is no fleet coming.
+        
+        if target_planet.growth_rate < 5 and target_planet not in visited:
             weakest_planet = target_planet
 
     # (3) Validify the action
@@ -117,13 +134,22 @@ def spread_ally(state):
 
     # (4) Increase the eco of the ally planet
     # Try to get atleast 100 ships there
-    # Improvement: Try to save at least the mean of the enemy ships.
-    strongest_threat = max(state.enemy_fleet(), key=lambda t: t.num_ships, default=None)
+    # Improvement: Try to save at least the mean of the enemy ships. OR highest planet
+    max_out = sum(fleet.num_ships for fleet in state.enemy_fleets())
+    max_in = max(state.enemy_planets(), key=lambda t: t.num_ships, default=None)
 
-    # (5) Leave just enough to defend, allow risk in econ to decimate enemy numbers.
-    estimated_risk = strongest_threat.num_ships
+    # (5) Leave just enough to defend, allow risk in econ to decimate enemy numbers.    
+    if (max_out > max_in):
+        estimated_risk = max_out
+    else:
+        estimated_risk = max_in.num_ships
+
     if (estimated_risk < strongest_planet.num_ships):
-        reinforcements = abs(estimated_risk - (weakest_planet - strongest_planet))
+        #reinforcements = abs(estimated_risk - weakest_planet.num_ships)
+        #reinforcements = abs(100 - weakest_planet.num_ships)
+        reinforcements = abs(estimated_risk - strongest_planet.num_ships)
+    
+        
         return issue_order(state, strongest_planet.ID, weakest_planet.ID, reinforcements)
     else:
         return False
