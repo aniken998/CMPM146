@@ -71,7 +71,7 @@ def attack_weakest_enemy_planet(state):
     else:
         estimated_risk = max_in.num_ships
 
-    if (estimated_risk < strongest_planet.num_ships):
+    if (estimated_risk < strongest_planet.num_ships * 0.9):
         #attackers = abs(estimated_risk - strongest_planet.num_ships)
         #attackers = abs(100 - strongest_planet.num_ships)
         attackers = abs((max_loss + 1) - strongest_planet.num_ships)
