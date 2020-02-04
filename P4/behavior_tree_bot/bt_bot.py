@@ -49,10 +49,11 @@ def setup_behavior_tree():
     enemy_planet_attack_check = Check(if_enemy_planet_attack)
     largest_fleet_check = Check(have_largest_fleet)
     visiting_check = Check(is_busy_reinforce) # Returns true if already did this.
-    '''
+
     link_attack_sequence = Sequence(name='All or Nothing')
     losing_growth = not Check(have_larger_growth)
     losing_planet = not Check(have_more_conquest)
+    '''
     
     root.child_nodes = [offensive_plan, spread_sequence, growth_plan, populate_plan]
     logging.info('\n' + root.tree_to_string())
