@@ -16,6 +16,14 @@ def need_econ(state):
 def save_fleet(state):
     return len(state.my_fleets()) > 5
 
+#return if enemy is attacking
+def if_planet_got_attack(state):
+    return len(state.enemy_fleets) > 0
+
+#return if the my strongest planet has less than 50 ships (all planets has less than 50 ships)
+def check_ship_left(state):
+    return max(state.my_planets(), key=lambda t: t.num_ships, default=None).num_ships < 50
+
 def have_largest_fleet(state):
     return sum(planet.num_ships for planet in state.my_planets()) \
              + sum(fleet.num_ships for fleet in state.my_fleets()) \
