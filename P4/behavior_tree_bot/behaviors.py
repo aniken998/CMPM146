@@ -28,6 +28,10 @@ def attack_weakest_enemy_planet(state):
                 send += 1
                 my_planet = next(my_planets)
                 target_planet = next(target_planets)
+            elif my_planet.num_ships > required_ships/2:
+                issue_order(state, my_planet.ID, target_planet.ID, required_ships/2)
+                send += 1
+                my_planet = next(my_planets)
             else:
                 my_planet = next(my_planets)
 
