@@ -62,18 +62,21 @@ def setup_behavior_tree():
     spread_action = Action(spread_to_weakest_neutral_planet)
     spread_sequence.child_nodes = [neutral_planet_check, spread_action]
 
+    steal_plan = Sequence(name='Thief')
+    steal_check = Check(steal_fleet)
+    steal = Action(steal_planet)
+    steal_plan.child_nodes = [steal_check, steal]
+
     offense = Selector(name="offense")
-    offense.child_nodes = [offensive_plan, spread_sequence, growth_plan]
+    offense.child_nodes = [steal_plan, offensive_plan, spread_sequence, growth_plan]
     '''
     defensive_plan = Sequence(name='Defend Strategy')
     enemy_planet_attack_check = Check(if_enemy_planet_attack)
     largest_fleet_check = Check(have_largest_fleet)
     visiting_check = Check(is_busy_reinforce) # Returns true if already did this.
     '''
-    offense = Selector(name='offense')
-    offense.child_nodes = [offensive_plan, spread_sequence, growth_plan]
 
-    root.child_nodes = [offense, defensive_plan]
+    root.child_nodes = [defensive_plan, offense]
     logging.info('\n' + root.tree_to_string())
     return root
 

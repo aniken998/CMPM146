@@ -197,15 +197,23 @@ def defendPlanet(state):
 
     return True
 
-def protect_planet(state):
-    if len(state.my_fleets()) >= 10: # Max 3 on offense.
-        return False
-
+def steal_planet(state):
     strongest_planet = max(state.my_planets(), key=lambda t: t.num_ships, default=None)
+    steal_planet = min(state.not_my_planets(), key=lambda t: t.num_ships, default=None).ID\
 
-    weakest_planet = min(state.enemy_fleet(), key=lambda t: t.num_ships, default=None)
+    if(strongest_planet.num_ships < 50):
+        return False
+    
+    for fleet in state.enemy_fleets(): 
+        target = fleet.destination_planet
+        # Can steal a planet
+        if strongest_planet.num_ships > fleet.num_ships:
+            steal_planet = target
 
-    return issue_order(state, strongest_planet.ID, weakest_planet.destination, strongest_planet.num_ships/2)
+        # Chosen a planet to steal, check if it exists
+        if (strongest_planet == None) or (steal_planet == None):            
+            return False
+    return issue_order(state, strongest_planet.ID, steal_planet, strongest_planet.num_ships / 2)
     
     
 
