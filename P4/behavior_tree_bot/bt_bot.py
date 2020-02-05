@@ -65,8 +65,9 @@ def setup_behavior_tree():
 
     steal_plan = Sequence(name='Thief')
     steal_check = Check(steal_fleet)
+    big_check = Check(have_largest_fleet)
     steal = Action(steal_planet)
-    steal_plan.child_nodes = [steal_check, steal]
+    steal_plan.child_nodes = [big_check, steal_check, steal]
 
     '''
     defensive_plan = Sequence(name='Defend Strategy')
@@ -76,7 +77,9 @@ def setup_behavior_tree():
     '''
 
     #steal and growth plan could cause a lost
-    root.child_nodes = [spread_sequence, offensive_plan, defensive_plan]
+    #root.child_nodes = [spread_sequence, offensive_plan, defensive_plan, steal_plan]
+    root.child_nodes = [defensive_plan, offensive_plan, spread_sequence, steal_plan]
+    
     logging.info('\n' + root.tree_to_string())
     return root
 

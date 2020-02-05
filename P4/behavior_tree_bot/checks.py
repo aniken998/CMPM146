@@ -23,7 +23,7 @@ def if_planet_got_attack(state):
 #return if the my strongest planet has less than 50 ships (all planets has less than 50 ships)
 def has_enough_ships(state):
     strongest_planet = max(state.my_planets(), key=lambda t: t.num_ships, default=None)
-    if(ships == None):
+    if(strongest_planet == None):
         return False
     return strongest_planet.num_ships < 50
 
@@ -46,7 +46,6 @@ def have_less_conquest(state):
 def steal_fleet(state):
     total = sum(planet.num_ships for planet in state.my_planets())
     for fleet in state.enemy_fleets(): 
-        target = fleet.destination_planet
         # Can steal a planet
         if fleet.num_ships < total:
             return True

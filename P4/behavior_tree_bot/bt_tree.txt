@@ -1,0 +1,16 @@
+INFO:root:
+Selector: High Level Ordering of Strategies
+| Sequence: Deffensive Strategy
+| | Check: have_more_conquest
+| | Action: defendPlanet
+| Sequence: Offensive Strategy
+| | Check: have_less_conquest
+| | Action: attack_weakest_enemy_planet
+| Sequence: Spread Strategy
+| | Check: have_less_conquest
+| | Check: if_neutral_planet_available
+| | Action: spread_to_weakest_neutral_planet
+| Sequence: Thief
+| | Check: have_largest_fleet
+| | Check: steal_fleet
+| | Action: steal_planet

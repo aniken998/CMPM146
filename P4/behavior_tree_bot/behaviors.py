@@ -177,11 +177,12 @@ def defendPlanet(state):
 
 def steal_planet(state):
     strongest_planet = max(state.my_planets(), key=lambda t: t.num_ships, default=None)
-    steal_planets = min(state.not_my_planets(), key=lambda t: t.num_ships, default=None)
-    if(steal_planets == None):
+    steal_planet = min(state.not_my_planets(), key=lambda t: t.num_ships, default=None)
+    if(steal_planet == None):
         return False
 
-    steal_planet_ID = steal_planets.ID
+    steal_planet_ID = steal_planet.ID
+    turns = 0
     if(strongest_planet.num_ships < 50):
         return False
     
@@ -190,12 +191,18 @@ def steal_planet(state):
         # Can steal a planet
         if strongest_planet.num_ships > fleet.num_ships:
             steal_planet_ID = target
+            turns = fleet.turns_remaining
 
         # Chosen a planet to steal, check if it exists
         if (strongest_planet == None) or (steal_planet == None):            
             return False
-    return issue_order(state, strongest_planet.ID, steal_planet_ID, strongest_planet.num_ships / 2)
-    
+    # Send a fleet if it takes longer to reach.
+    if state.distance(strongest_planet.ID, steal_planet_ID) == turns + 1:
+        required_ships = steal_planet.num_ships + \
+            state.distance(strongest_planet.ID, steal_planet_ID) * steal_planet.growth_rate + 1
+        return issue_order(state, strongest_planet.ID, steal_planet_ID, required_ships + 1)
+    else:
+        return False
     
 
 
