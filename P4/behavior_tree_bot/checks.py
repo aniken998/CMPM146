@@ -29,3 +29,17 @@ def have_larger_growth(state):
 def have_more_conquest(state):
     return (sum(planet for planet in state.my_planets())
            > sum(planet for planet in state.enemy_planets()) )
+
+#return if enemy is attacking
+# def if_planet_got_attack(state):
+#     return len(state.enemy_fleets()) > 0
+
+# #return if the my strongest planet has less than 50 ships (all planets has less than 50 ships)
+# def check_ship_left(state):
+#     planet = max(state.my_planets(), key=lambda t: t.num_ships, default=None)
+#     if planet != None:
+#         return planet.num_ships < 50
+#     return False
+
+
+

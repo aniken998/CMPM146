@@ -131,5 +131,64 @@ def spread_ally(state):
 # Does nothing. Just gain free econ and sit back.
 def do_no_op(state):
     return True
+    
+# def protect_planet(state):
+#     if len(state.my_fleets()) >= 3: # Max 3 on offense.
+#         return False
+
+#     strongest_planet = max(state.my_planets(), key=lambda t: t.num_ships, default=None)
+
+#     weakest_planet = max(state.my_planets(), key=lambda t: t.growth_rate, default=None)
+
+#     shipsInFleet = 0
+#     for fleet in state.my_fleets():
+#         if(fleet.destination_planet == weakest_planet):
+#             shipsInFleet = fleet.num_ships
+#             break
+    
+#     if strongest_planet == None or weakest_planet == None:
+#         return False
+
+#     if weakest_planet.num_ships + shipsInFleet > 60:
+#         return False
+
+#     return issue_order(state, strongest_planet.ID, weakest_planet.ID, strongest_planet.num_ships/2)
+
+def defendPlanet(state):
+    my_planets = [planet for planet in state.my_planets()]
+
+    if not my_planets:
+        return False
+
+    def strength(p):
+        return p.num_ships \
+               + sum(fleet.num_ships for fleet in state.my_fleets() if fleet.destination_planet == p.ID) \
+               - sum(fleet.num_ships for fleet in state.enemy_fleets() if fleet.destination_planet == p.ID)
+
+    avg = sum(strength(planet) for planet in my_planets) / len(my_planets)
+    
+    weak_planets = [planet for planet in my_planets if strength(planet) < avg]
+    strong_planets = [planet for planet in my_planets if strength(planet) > avg]
+
+    if (not weak_planets) or (not strong_planets):
+        return False
+
+    weak_planet = min(my_planets, key=lambda t: t.num_ships, default=None)
+    strong_planet = max(my_planets, key=lambda t: t.num_ships, default=None)
+    
+    if(weak_planet == None or strong_planet == None):
+        return False
+
+    need = int(avg - strength(weak_planet))
+    have = int(strength(strong_planet) - avg)
+
+    if have >= need > 0:
+        return issue_order(state, strong_planet.ID, weak_planet.ID, need)
+    elif have > 0:
+        return issue_order(state, strong_planet.ID, weak_planet.ID, have)
+    else:
+        return False
+
+    return False
 
 # Major Improvement: Choose the "strongest" based on proximity to reinforce or attack.
