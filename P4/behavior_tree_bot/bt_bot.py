@@ -36,9 +36,9 @@ def setup_behavior_tree():
     # silent.child_nodes = [check_ships, wait]
 
     defensive_plan = Sequence(name='Deffensive Strategy')
-    check_owned_planet = Check(have_more_conquest)
+    check_owned_ship = Check(have_more_conquest)
     protect_action = Action(defendPlanet)
-    defensive_plan.child_nodes = [protect_action]
+    defensive_plan.child_nodes = [check_owned_ship, protect_action]
     # defense = Selector(name='defense')
     # defense.child_nodes = [denfensive_plan]
 
@@ -53,22 +53,21 @@ def setup_behavior_tree():
     growth_plan.child_nodes = [eco_check, grow]
     
     offensive_plan = Sequence(name='Offensive Strategy')
-    largest_fleet_check = Check(have_largest_fleet)
+    largest_fleet_check = Check(have_less_conquest)
     attack = Action(attack_weakest_enemy_planet)
     offensive_plan.child_nodes = [largest_fleet_check, attack]
 
     spread_sequence = Sequence(name='Spread Strategy')
+    conquest_check = Check(have_less_conquest)
     neutral_planet_check = Check(if_neutral_planet_available)
     spread_action = Action(spread_to_weakest_neutral_planet)
-    spread_sequence.child_nodes = [neutral_planet_check, spread_action]
+    spread_sequence.child_nodes = [conquest_check, neutral_planet_check, spread_action]
 
     steal_plan = Sequence(name='Thief')
     steal_check = Check(steal_fleet)
     steal = Action(steal_planet)
     steal_plan.child_nodes = [steal_check, steal]
 
-    offense = Selector(name="offense")
-    offense.child_nodes = [steal_plan, offensive_plan, spread_sequence, growth_plan]
     '''
     defensive_plan = Sequence(name='Defend Strategy')
     enemy_planet_attack_check = Check(if_enemy_planet_attack)
@@ -76,7 +75,8 @@ def setup_behavior_tree():
     visiting_check = Check(is_busy_reinforce) # Returns true if already did this.
     '''
 
-    root.child_nodes = [defensive_plan, offense]
+    #steal and growth plan could cause a lost
+    root.child_nodes = [spread_sequence, offensive_plan, defensive_plan]
     logging.info('\n' + root.tree_to_string())
     return root
 

@@ -7,93 +7,67 @@ from planet_wars import issue_order
 
 # Complex Attack
 def attack_weakest_enemy_planet(state):
-    # Prereq: Prior Check for Fleets already attacking.
+    my_planets = iter(sorted(state.my_planets(), key=lambda p: p.num_ships))
 
-    # (1) If we currently have a fleet in flight, abort plan.
-    # Improve: Count all fleets going to an enemy planet. 
-    if len(state.my_fleets()) >= 10: # Max 3 on offense.
-        return False
+    enemy_planets = [planet for planet in state.enemy_planets()
+                      if not any(fleet.destination_planet == planet.ID for fleet in state.my_fleets())]
+    enemy_planets.sort(key=lambda p: p.num_ships)
 
-    # (2) Find my strongest planet.
-    strongest_planet = max(state.my_planets(), key=lambda t: t.num_ships, default=None)
+    target_planets = iter(enemy_planets)
 
-    # (3) Choose the planet that minimizes loss.
-    weakest_planet = min(state.enemy_planets(), key=lambda t: t.num_ships, default=None)
-    
-    # (3) Check if move is Valid
-    if not strongest_planet or not weakest_planet:
-        # No legal source or destination
-        return False
+    send = 0
+    try:
+        my_planet = next(my_planets)
+        target_planet = next(target_planets)
+        while True:
+            required_ships = target_planet.num_ships + \
+                                 state.distance(my_planet.ID, target_planet.ID) * target_planet.growth_rate + 1
 
-    max_loss = 0
-    for target_planet in state.enemy_planets():
-        # Calculate the distance between my strongest and the enemies planets.
-        # Factor in growth over the distance, and the initial ships.
-        deviation = state.distance(target_planet.ID, strongest_planet.ID)
-        growth = target_planet.growth_rate + (deviation * 0.1) # Because this increases based on turns too. 
-        health = target_planet.num_ships
-        
-        if (deviation + health) < max_loss:
-            weakest_planet = target_planet
-            max_loss = deviation + health
+            if my_planet.num_ships > required_ships:
+                issue_order(state, my_planet.ID, target_planet.ID, required_ships)
+                send += 1
+                my_planet = next(my_planets)
+                target_planet = next(target_planets)
+            else:
+                my_planet = next(my_planets)
 
-    # (3) Check if move is Valid
-    if not strongest_planet or not weakest_planet:
-        # No legal source or destination
-        return False
-
-    # (4) Attack if you can take the risk. For Enemy vs neutral take bigger risks.
-    if (deviation * growth + health) < strongest_planet.num_ships: 
-        # # Overall, never send all your ships. it kills econ.
-        # Improvements: Factor in growth rate instead of a standard 1/2
-        # target_planet.growth_rate + 1
-        # Try to leave at least 100 ships.
-        send_ships = abs(100 - strongest_planet.num_ships)
-        return issue_order(state, strongest_planet.ID, weakest_planet.ID, send_ships)
-    else:
-        return False
+    except StopIteration:
+        if send > 0:
+            return True
+        else:
+            return False
 
 
 # Complex Spread
 def spread_to_weakest_neutral_planet(state):
-    # (1) If we currently have a fleet in flight, just do nothing.
-#    if len(state.my_fleets()) >= 2:
-#        return False
+    my_planets = iter(sorted(state.my_planets(), key=lambda p: p.num_ships))
 
-    # (2) Find my strongest planet.
-    strongest_planet = max(state.my_planets(), key=lambda t: t.num_ships, default=None)
+    neutral_planets = [planet for planet in state.neutral_planets()
+                      if not any(fleet.destination_planet == planet.ID for fleet in state.my_fleets())]
+    neutral_planets.sort(key=lambda p: p.num_ships)
 
-    # (3) Choose the planet that minimizes loss.
-    weakest_planet = min(state.neutral_planets(), key=lambda t: t.num_ships, default=None)
-    
-    # (4) Check if move is Valid
-    if not strongest_planet or not weakest_planet:
-        # No legal source or destination
-        return False
+    target_planets = iter(neutral_planets)
 
-    max_loss = 0
-    for target_planet in state.neutral_planets():
-        # Calculate the distance between my strongest and the enemies planets.
-        # Factor in growth over the distance, and the initial ships.
-        deviation = state.distance(target_planet.ID, strongest_planet.ID)
-        health = target_planet.num_ships
-        
-        if (deviation + health) < max_loss:
-            weakest_planet = target_planet
-            max_loss = deviation + health
+    send = 0
+    try:
+        my_planet = next(my_planets)
+        target_planet = next(target_planets)
+        while True:
+            required_ships = target_planet.num_ships + 1
 
-    # (4) Check if move is Valid again
-    if not strongest_planet or not weakest_planet:
-        # No legal source or destination
-        return False
+            if my_planet.num_ships > required_ships:
+                issue_order(state, my_planet.ID, target_planet.ID, required_ships)
+                send += 1
+                my_planet = next(my_planets)
+                target_planet = next(target_planets)
+            else:
+                my_planet = next(my_planets)
 
-    # (5) Attack if you can take the risk.
-    if (deviation + health) < strongest_planet.num_ships / 2: 
-        # # Overall, never send all your ships. it kills econ.
-        # Improvements: Make it send at most 50%. Not exactly half.
-        return issue_order(state, strongest_planet.ID, weakest_planet.ID, strongest_planet.num_ships / 2)
-    else:
-        return False
+    except StopIteration:
+        if send > 0:
+            return True
+        else:
+            return False
 
 # Complex Growth, Make it factor in distance and growth rate.
 # Simple Growth
@@ -193,14 +167,17 @@ def defendPlanet(state):
                 strong_planet = next(strong_planets)
 
     except StopIteration:
-        return False
+        return True
 
     return True
 
 def steal_planet(state):
     strongest_planet = max(state.my_planets(), key=lambda t: t.num_ships, default=None)
-    steal_planet = min(state.not_my_planets(), key=lambda t: t.num_ships, default=None).ID\
+    steal_planets = min(state.not_my_planets(), key=lambda t: t.num_ships, default=None)
+    if(steal_planets == None):
+        return False
 
+    steal_planet_ID = steal_planets.ID
     if(strongest_planet.num_ships < 50):
         return False
     
@@ -208,12 +185,12 @@ def steal_planet(state):
         target = fleet.destination_planet
         # Can steal a planet
         if strongest_planet.num_ships > fleet.num_ships:
-            steal_planet = target
+            steal_planet_ID = target
 
         # Chosen a planet to steal, check if it exists
         if (strongest_planet == None) or (steal_planet == None):            
             return False
-    return issue_order(state, strongest_planet.ID, steal_planet, strongest_planet.num_ships / 2)
+    return issue_order(state, strongest_planet.ID, steal_planet_ID, strongest_planet.num_ships / 2)
     
     
 

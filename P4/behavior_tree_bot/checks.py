@@ -18,7 +18,7 @@ def save_fleet(state):
 
 #return if enemy is attacking
 def if_planet_got_attack(state):
-    return len(state.enemy_fleets) > 0
+    return len(state.enemy_fleets()) > 0
 
 #return if the my strongest planet has less than 50 ships (all planets has less than 50 ships)
 def has_enough_ships(state):
@@ -38,12 +38,10 @@ def have_larger_growth(state):
            > sum(planet.growth_rate for planet in state.enemy_planets()) )
 
 def have_more_conquest(state):
-    return (sum(planet for planet in state.my_planets())
-           > sum(planet for planet in state.enemy_planets()) )
+    return len(state.my_planets()) > len(state.enemy_planets())
 
 def have_less_conquest(state):
-    return (sum(planet for planet in state.my_planets())
-           < sum(planet for planet in state.enemy_planets()))
+    return len(state.my_planets()) <= len(state.enemy_planets())
 
 def steal_fleet(state):
     total = sum(planet.num_ships for planet in state.my_planets())
