@@ -173,23 +173,29 @@ def defendPlanet(state):
     if (not weak_planets) or (not strong_planets):
         return False
 
-    weak_planet = min(my_planets, key=lambda t: t.num_ships, default=None)
-    strong_planet = max(my_planets, key=lambda t: t.num_ships, default=None)
-    
-    if(weak_planet == None or strong_planet == None):
+    weak_planets = iter(sorted(weak_planets, key=strength))
+    strong_planets = iter(sorted(strong_planets, key=strength, reverse=True))
+
+    try:
+        weak_planet = next(weak_planets)
+        strong_planet = next(strong_planets)
+        while True:
+            need = int(avg - strength(weak_planet))
+            have = int(strength(strong_planet) - avg)
+
+            if have >= need > 0:
+                issue_order(state, strong_planet.ID, weak_planet.ID, need)
+                weak_planet = next(weak_planets)
+            elif have > 0:
+                issue_order(state, strong_planet.ID, weak_planet.ID, have)
+                strong_planet = next(strong_planets)
+            else:
+                strong_planet = next(strong_planets)
+
+    except StopIteration:
         return False
 
-    need = int(avg - strength(weak_planet))
-    have = int(strength(strong_planet) - avg)
-
-    if have >= need > 0:
-        return issue_order(state, strong_planet.ID, weak_planet.ID, need)
-    elif have > 0:
-        return issue_order(state, strong_planet.ID, weak_planet.ID, have)
-    else:
-        return False
-
-    return False
+    return True
 
 def protect_planet(state):
     if len(state.my_fleets()) >= 10: # Max 3 on offense.

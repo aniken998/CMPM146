@@ -38,6 +38,10 @@ def have_more_conquest(state):
     return (sum(planet for planet in state.my_planets())
            > sum(planet for planet in state.enemy_planets()) )
 
+def have_less_conquest(state):
+    return (sum(planet for planet in state.my_planets())
+           < sum(planet for planet in state.enemy_planets()) )
+
 #return if enemy is attacking
 # def if_planet_got_attack(state):
 #     return len(state.enemy_fleets()) > 0

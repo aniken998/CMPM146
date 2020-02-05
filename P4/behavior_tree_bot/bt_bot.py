@@ -73,7 +73,7 @@ def setup_behavior_tree():
     offense = Selector(name='offense')
     offense.child_nodes = [offensive_plan, spread_sequence, growth_plan]
 
-    root.child_nodes = [defensive_plan, offense]
+    root.child_nodes = [offense, defensive_plan]
     logging.info('\n' + root.tree_to_string())
     return root
 
