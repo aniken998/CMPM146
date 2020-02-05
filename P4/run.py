@@ -54,12 +54,7 @@ def test(bot, opponent_bot, map_num):
 
 if __name__ == '__main__':
     path =  os.getcwd()
-    # opponents = ['opponent_bots/easy_bot.py']
-    opponents = ['opponent_bots/spread_bot.py']
-    # opponents = ['opponent_bots/aggressive_bot.py']
-    
-    '''
-    ,
+    opponents = ['opponent_bots/easy_bot.py',
                  'opponent_bots/spread_bot.py',
                  'opponent_bots/aggressive_bot.py',
                  'opponent_bots/defensive_bot.py',
