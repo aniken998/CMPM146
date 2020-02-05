@@ -191,4 +191,17 @@ def defendPlanet(state):
 
     return False
 
+def protect_planet(state):
+    if len(state.my_fleets()) >= 10: # Max 3 on offense.
+        return False
+
+    strongest_planet = max(state.my_planets(), key=lambda t: t.num_ships, default=None)
+
+    weakest_planet = min(state.enemy_fleet(), key=lambda t: t.num_ships, default=None)
+
+    return issue_order(state, strongest_planet.ID, weakest_planet.destination, strongest_planet.num_ships/2)
+    
+    
+
+
 # Major Improvement: Choose the "strongest" based on proximity to reinforce or attack.
