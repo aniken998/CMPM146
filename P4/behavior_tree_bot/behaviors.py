@@ -71,7 +71,9 @@ def attack_weakest_enemy_planet(state):
     else:
         estimated_risk = max_in.num_ships
 
-    if (estimated_risk < strongest_planet.num_ships * 0.9):
+    # (5a) Take higher risks if the planet is not worth keeping. 
+    # Likewise take lower risks if the planet has a high growth rate.
+    if estimated_risk < strongest_planet.num_ships * 0.75:
         #attackers = abs(estimated_risk - strongest_planet.num_ships)
         #attackers = abs(100 - strongest_planet.num_ships)
         attackers = abs((max_loss + 1) - strongest_planet.num_ships)
@@ -178,6 +180,21 @@ def spread_ally(state):
         return issue_order(state, strongest_planet.ID, weakest_planet.ID, reinforcements)
     else:
         return False
+
+def steal_planet(state):
+    strongest_planet = max(state.my_planets(), key=lambda t: t.num_ships, default=None)
+    steal_planet = min(state.not_my_planets(), key=lambda t: t.num_ships, default=None)
+    
+    for fleet in state.enemy_fleets(): 
+        target = fleet.destination_planet
+        # Can steal a planet
+        if strongest_planet.num_ships > fleet.num_ships:
+            steal_planet = target
+
+        # Chosen a planet to steal, check if it exists
+        if (strongest_planet == None) or (steal_planet == None):            
+            return False
+    return issue_order(state, strongest_planet.ID, steal_planet.ID, strongest_planet.num_ships / 2)
 
 # Does nothing. Just gain free econ and sit back.
 def do_no_op(state):

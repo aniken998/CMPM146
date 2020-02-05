@@ -34,9 +34,14 @@ def setup_behavior_tree():
     eco_check = Check(need_econ)
     grow = Action(spread_ally)
     growth_plan.child_nodes = [eco_check, grow]
-    
+
+    steal_plan = Sequence(name='Thief')
+    steal_check = Check(steal_fleet)
+    steal = Action(steal_planet)
+    steal_plan.child_nodes = [steal_check, steal]
+
     offensive_plan = Sequence(name='Offensive Strategy')
-    largest_fleet_check = Check(have_largest_fleet)
+    largest_fleet_check = Check(have_larger_growth)
     attack = Action(attack_weakest_enemy_planet)
     offensive_plan.child_nodes = [largest_fleet_check, attack]
 
@@ -55,7 +60,7 @@ def setup_behavior_tree():
     losing_planet = not Check(have_more_conquest)
     '''
     
-    root.child_nodes = [offensive_plan, spread_sequence, growth_plan, populate_plan]
+    root.child_nodes = [steal_plan, offensive_plan, spread_sequence, growth_plan, populate_plan]
     logging.info('\n' + root.tree_to_string())
     return root
 

@@ -18,6 +18,14 @@ def save_fleet(state):
     #return (sum(fleet.num_ships for fleet in state.my_fleets()) \
     #    > sum(planet.growth_rate for planet in state.my_planets()))
 
+def steal_fleet(state):
+    total = sum(planet.num_ships for planet in state.my_planets())
+    for fleet in state.enemy_fleets(): 
+        target = fleet.destination_planet
+        # Can steal a planet
+        if fleet.num_ships < total:
+            return True
+    return False
 
 def have_largest_fleet(state):
     return sum(planet.num_ships for planet in state.my_planets()) \
