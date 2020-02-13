@@ -8,8 +8,8 @@ def show_match(bot, opponent_bot, map_num):
         game is replayed via a visual interface.
     """
     command = 'java -jar tools/PlayGame.jar maps/map' + str(map_num) + '.txt 1000 1000 log.txt ' + \
-              '"python3.7 ' + bot + '" ' + \
-              '"python3.7 ' + opponent_bot + '" ' + \
+              '"python ' + bot + '" ' + \
+              '"python ' + opponent_bot + '" ' + \
               '| java -jar tools/ShowGame.jar'
     print(command)
     os.system(command)
@@ -20,8 +20,8 @@ def test(bot, opponent_bot, map_num):
     bot_name, opponent_name = bot.split('/')[1].split('.')[0], opponent_bot.split('/')[1].split('.')[0]
     print('Running test:',bot_name,'vs',opponent_name)
     command = 'java -jar tools/PlayGame.jar maps/map' + str(map_num) +'.txt 1000 1000 log.txt ' + \
-              '"python3.7 ' + bot + '" ' + \
-              '"python3.7 ' + opponent_bot + '" '
+              '"python ' + bot + '" ' + \
+              '"python ' + opponent_bot + '" '
 
     print(command)
     p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
@@ -54,18 +54,19 @@ def test(bot, opponent_bot, map_num):
 
 if __name__ == '__main__':
     path =  os.getcwd()
-    opponents = ['opponent_bots/easy_bot.py',
+    opponents = ['opponent_bots/easy_bot.py']
+    # opponents = ['opponent_bots/spread_bot.py']
+    # opponents = ['opponent_bots/aggressive_bot.py']
+    
+    '''
+    ,
                  'opponent_bots/spread_bot.py',
                  'opponent_bots/aggressive_bot.py',
                  'opponent_bots/defensive_bot.py',
                  'opponent_bots/production_bot.py']
+    '''
 
-    # 'opponent_bots/spread_bot.py',
-    # 'opponent_bots/aggressive_bot.py',
-    # 'opponent_bots/defensive_bot.py',
-    # 'opponent_bots/production_bot.py'
-
-    maps = [55, 24, 12, 89, 100]
+    maps = [71, 13, 24, 56, 7]
 
     my_bot = 'behavior_tree_bot/bt_bot.py'
     show = len(sys.argv) < 2 or sys.argv[1] == "show"
