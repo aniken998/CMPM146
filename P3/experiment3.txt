@@ -1,0 +1,5 @@
+Experiment 3 – Time as a Constraint
+We found that the modified version won a little bit more than the vanilla when time is a constraint. 
+We think the tree sizes in one second should almost be the same. Maybe the modified version is a little bit smaller,
+because the result is similar to the experiment 2. We think the more complex the modified version is, the smaller tree
+it will be as time elapses compared to vanilla. The more time AI spend on thinking, the higher win rate it will have.
